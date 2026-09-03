@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c0614">
+  <title>404 — Back to the Club</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07030d;
+      --bg2: #12081d;
+      --panel: rgba(10, 8, 20, 0.84);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --text: #f6efff;
+      --muted: #b88fe6;
+      --pink: #ff4fd8;
+      --cyan: #62e8ff;
+      --gold: #ffd56a;
+      --shadow: 0 0 24px rgba(255, 79, 216, 0.22), 0 0 44px rgba(98, 232, 255, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255, 79, 216, 0.22), transparent 30%),
+        radial-gradient(circle at 15% 75%, rgba(98, 232, 255, 0.16), transparent 25%),
+        linear-gradient(160deg, var(--bg), var(--bg2));
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+    body::before {
+      background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+    }
+    body::after {
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.03) 0,
+        rgba(255,255,255,0.03) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity: 0.05;
+    }
+    .club {
+      width: min(92vw, 420px);
+      padding: 24px 18px 20px;
+      border-radius: 28px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(18px);
+      text-align: center;
+      position: relative;
+      transform: translateY(0);
+      animation: float 4.5s ease-in-out infinite;
+    }
+    .club::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.05);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,79,216,0.18), rgba(98,232,255,0.18));
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--gold);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-size: 11px;
+      margin-bottom: 18px;
+      box-shadow: 0 0 18px rgba(255, 79, 216, 0.16);
+    }
+    .title {
+      margin: 0;
+      font-size: clamp(3rem, 14vw, 5.5rem);
+      line-height: 0.92;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow:
+        0 0 8px rgba(255,255,255,0.18),
+        0 0 18px rgba(255,79,216,0.8),
+        0 0 32px rgba(98,232,255,0.55),
+        0 0 60px rgba(255,79,216,0.32);
+      animation: flicker 3.8s infinite;
+    }
+    .subtitle {
+      margin: 14px auto 0;
+      max-width: 30ch;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .track {
+      margin: 22px auto 18px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      align-items: end;
+      height: 54px;
+    }
+    .track span {
+      width: 10px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--cyan), var(--pink));
+      box-shadow: 0 0 12px rgba(98,232,255,0.55);
+      animation: equalize 1.2s ease-in-out infinite;
+    }
+    .track span:nth-child(1) { height: 20px; animation-delay: 0s; }
+    .track span:nth-child(2) { height: 38px; animation-delay: .12s; }
+    .track span:nth-child(3) { height: 28px; animation-delay: .24s; }
+    .track span:nth-child(4) { height: 46px; animation-delay: .36s; }
+    .track span:nth-child(5) { height: 24px; animation-delay: .48s; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 700;
+      color: #0b0712;
+      background: linear-gradient(135deg, var(--gold), #fff0aa);
+      box-shadow: 0 10px 24px rgba(255, 213, 106, 0.18);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .button.secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: none;
+    }
+    .hint {
+      margin-top: 12px;
+      font-size: 0.84rem;
+      color: rgba(255,255,255,0.56);
+    }
+    .glow {
+      position: absolute;
+      inset: auto 20px 18px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, var(--pink), var(--cyan), transparent);
+      opacity: 0.8;
+      filter: blur(1px);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes flicker {
+      0%, 19%, 22%, 62%, 64%, 70%, 100% { opacity: 1; }
+      20%, 21%, 63%, 69% { opacity: 0.72; }
+    }
+    @keyframes equalize {
+      0%, 100% { transform: scaleY(0.78); opacity: 0.7; }
+      50% { transform: scaleY(1.08); opacity: 1; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.55; transform: scaleX(0.98); }
+      50% { opacity: 1; transform: scaleX(1.02); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="club" role="main" aria-labelledby="title">
+    <div class="badge">Midnight Habit Club</div>
+    <h1 class="title" id="title">404</h1>
+    <p class="subtitle">The page you hit wandered off the dance floor. I’m sending you back to the club in a second.</p>
+
+    <div class="track" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="actions">
+      <a class="button" href="./">Go Home</a>
+      <button class="button secondary" id="nowBtn" type="button">Back Now</button>
+    </div>
+
+    <div class="hint" id="countdown">Redirecting in 3 seconds…</div>
+    <div class="glow" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const repoRoot = (() => {
+      const parts = location.pathname.split('/').filter(Boolean);
+      return parts.length ? `/${parts[0]}/` : '/';
+    })();
+    const countdown = document.getElementById('countdown');
+    const backNow = document.getElementById('nowBtn');
+    let seconds = 3;
+    const tick = () => {
+      seconds -= 1;
+      if (seconds > 0) {
+        countdown.textContent = `Redirecting in ${seconds} second${seconds === 1 ? '' : 's'}…`;
+      } else {
+        window.location.replace(repoRoot);
+      }
+    };
+    const timer = setInterval(tick, 1000);
+    backNow.addEventListener('click', () => {
+      clearInterval(timer);
+      window.location.replace(repoRoot);
+    });
+  </script>
+</body>
+</html>
