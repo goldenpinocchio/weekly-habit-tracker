@@ -3,85 +3,102 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b0612" />
-    <title>Midnight Habit Club</title>
+    <meta name="theme-color" content="#13081f" />
+    <title>Weekly Habit Tracker</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
-        <div class="topbar-copy">
-          <h1 id="weekTitle">Week</h1>
-        </div>
-        <div class="topbar-actions">
-          <button data-action="prev-week">‹</button>
-          <button data-action="today">Today</button>
-          <button data-action="next-week">›</button>
-        </div>
-      </header>
-
-      <section class="tracker-shell">
-        <div class="tracker-toolbar">
-          <span class="tracker-title">Weekly tracker</span>
-          <div class="tracker-actions">
-            <button data-action="add-habit">+ Habit</button>
-            <button data-action="copy-week">Copy Week</button>
-            <button data-action="backup">Backup</button>
+      <main class="habit-app">
+        <section class="frame" aria-label="Weekly habit tracker">
+          <div class="frame-top">
+            <button class="week-nav" type="button" data-action="prev-week" aria-label="Previous week">‹</button>
+            <div class="week-heading">
+              <p class="eyebrow">Weekly Habit Tracker</p>
+              <h1 id="weekTitle">Aug 31st - Sep 6th</h1>
+            </div>
+            <button class="week-nav" type="button" data-action="next-week" aria-label="Next week">›</button>
           </div>
-        </div>
 
-        <div class="tracker-grid" id="trackerGrid" role="grid" aria-label="Habit tracking grid"></div>
-      </section>
+          <div class="planner-stage">
+            <div class="board-wrap">
+              <div id="trackerBoard" class="tracker-board" role="grid" aria-label="Week grid"></div>
+            </div>
 
-      <section class="summary-grid summary-bottom" aria-label="Weekly totals">
-        <article class="summary-card accent">
-          <span class="summary-label">Running Total</span>
-          <strong id="runningTotal">0</strong>
-        </article>
-      </section>
+            <aside class="planner-rail" aria-label="Planner art">
+              <div class="planner-rail__title">DAILY HABIT TRACKER</div>
+              <div class="planner-rail__days" aria-hidden="true">
+                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+              </div>
+              <div class="planner-rail__shine"></div>
+            </aside>
+          </div>
+        </section>
 
-      <section class="planner-note note-bottom">
-        <label for="weekNote">Weekly note</label>
-        <textarea id="weekNote" rows="4" placeholder="Plan your week here..."></textarea>
-      </section>
+        <section class="bottom-panels">
+          <article class="summary-card accent" aria-label="Hearts earned this week">
+            <span class="summary-label">Total hearts earned</span>
+            <strong id="totalHearts">0</strong>
+            <span id="totalPoints" class="summary-sub">0 pts</span>
+          </article>
 
-      <footer class="footer-actions">
-        <button data-action="add-habit">Add Habit</button>
-        <button data-action="backup">Export / Import</button>
-      </footer>
+          <article class="mission-card" aria-label="Weekly mission">
+            <label for="mission">Weekly mission</label>
+            <textarea id="mission" rows="4" placeholder="Write your weekly mission here..."></textarea>
+          </article>
+        </section>
+
+        <section class="toolbar" aria-label="Week actions">
+          <button type="button" data-action="copy-previous">Copy previous week</button>
+          <button type="button" data-action="backup">Export / Import</button>
+          <button type="button" data-action="today">Today</button>
+        </section>
+      </main>
     </div>
 
     <dialog id="habitDialog" class="modal">
       <form method="dialog" id="habitForm" class="modal-card">
         <input type="hidden" id="habitId" />
-        <h2 id="habitDialogTitle">Add Habit</h2>
+        <h2 id="habitDialogTitle">Create New Habit</h2>
         <label>
           Habit name
-          <input id="habitName" type="text" maxlength="60" placeholder="Drink water" required />
+          <input id="habitName" type="text" maxlength="60" placeholder="Read + Write" required />
         </label>
         <label>
-          Mark style
-          <select id="habitPattern">
-            <option value="x-once">X once</option>
-            <option value="slash-x">/ then X</option>
-            <option value="backslash-once">\ once</option>
+          Points per tap
+          <select id="habitPoints">
+            <option value="1">1 point — half heart</option>
+            <option value="2">2 points — full heart</option>
           </select>
         </label>
+        <p class="subtle tiny">1 point = half heart. 2 points = full heart on one tap.</p>
         <menu>
-          <button value="cancel" type="button" data-action="close-habit">Cancel</button>
-          <button value="delete" type="button" class="danger" data-action="delete-habit">Delete</button>
-          <button value="save" type="submit" class="primary">Save</button>
+          <button type="button" class="danger" id="habitDelete">Delete</button>
+          <button type="button" data-action="close-habit">Cancel</button>
+          <button type="submit" class="primary">Save</button>
         </menu>
       </form>
+    </dialog>
+
+    <dialog id="slotDialog" class="modal">
+      <div class="modal-card">
+        <input type="hidden" id="slotId" />
+        <h2 id="slotDialogTitle">Choose a habit</h2>
+        <p id="slotDialogMeta" class="subtle"></p>
+        <div id="slotOptions" class="stack"></div>
+        <menu>
+          <button type="button" data-action="close-slot">Close</button>
+        </menu>
+      </div>
     </dialog>
 
     <dialog id="backupDialog" class="modal">
       <div class="modal-card">
         <h2>Backup</h2>
-        <p class="subtle">Export a JSON backup or restore one from your device.</p>
+        <p class="subtle">Export your data as JSON or restore it later on the same device.</p>
         <div class="stack">
-          <button id="exportBackup" class="primary">Export backup</button>
+          <button id="exportBackup" class="primary" type="button">Export backup</button>
           <label class="file-picker">
             Import backup
             <input id="importBackup" type="file" accept="application/json" />
@@ -92,16 +109,6 @@
         </menu>
       </div>
     </dialog>
-
-    <template id="habitRowTemplate">
-      <article class="habit-row">
-        <div class="habit-meta">
-          <button class="habit-edit" type="button"></button>
-          <span class="habit-points"></span>
-        </div>
-        <div class="day-cells"></div>
-      </article>
-    </template>
 
     <script src="app.js"></script>
   </body>
