@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0612" />
+    <title>Midnight Habit Club</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Midnight Habit Club</p>
+          <h1 id="weekTitle">Week</h1>
+          <p id="weekRange" class="subtle"></p>
+        </div>
+        <div class="topbar-actions">
+          <button data-action="prev-week">‹</button>
+          <button data-action="today">Today</button>
+          <button data-action="next-week">›</button>
+        </div>
+      </header>
+
+      <section class="summary-grid" aria-label="Weekly totals">
+        <article class="summary-card accent">
+          <span class="summary-label">Running Total</span>
+          <strong id="runningTotal">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Weekly Possible</span>
+          <strong id="weeklyPossible">0</strong>
+        </article>
+      </section>
+
+      <section class="planner-note">
+        <label for="weekNote">Weekly note</label>
+        <textarea id="weekNote" rows="4" placeholder="Plan your week here..."></textarea>
+      </section>
+
+      <section class="tracker-shell">
+        <div class="tracker-toolbar">
+          <span class="tracker-title">Habit Tracker</span>
+          <div class="tracker-actions">
+            <button data-action="add-habit">+ Habit</button>
+            <button data-action="copy-week">Copy Week</button>
+            <button data-action="backup">Backup</button>
+          </div>
+        </div>
+
+        <div class="tracker-grid" id="trackerGrid" role="grid" aria-label="Habit tracking grid"></div>
+      </section>
+
+      <footer class="footer-actions">
+        <button data-action="add-habit">Add Habit</button>
+        <button data-action="backup">Export / Import</button>
+      </footer>
+    </div>
+
+    <dialog id="habitDialog" class="modal">
+      <form method="dialog" id="habitForm" class="modal-card">
+        <input type="hidden" id="habitId" />
+        <h2 id="habitDialogTitle">Add Habit</h2>
+        <label>
+          Habit name
+          <input id="habitName" type="text" maxlength="60" placeholder="Drink water" required />
+        </label>
+        <label>
+          Mark style
+          <select id="habitPattern">
+            <option value="x-once">X once</option>
+            <option value="slash-x">/ then X</option>
+            <option value="backslash-once">\ once</option>
+          </select>
+        </label>
+        <menu>
+          <button value="cancel" type="button" data-action="close-habit">Cancel</button>
+          <button value="delete" type="button" class="danger" data-action="delete-habit">Delete</button>
+          <button value="save" type="submit" class="primary">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="backupDialog" class="modal">
+      <div class="modal-card">
+        <h2>Backup</h2>
+        <p class="subtle">Export a JSON backup or restore one from your device.</p>
+        <div class="stack">
+          <button id="exportBackup" class="primary">Export backup</button>
+          <label class="file-picker">
+            Import backup
+            <input id="importBackup" type="file" accept="application/json" />
+          </label>
+        </div>
+        <menu>
+          <button type="button" data-action="close-backup">Close</button>
+        </menu>
+      </div>
+    </dialog>
+
+    <template id="habitRowTemplate">
+      <article class="habit-row">
+        <div class="habit-meta">
+          <button class="habit-edit" type="button"></button>
+          <span class="habit-points"></span>
+        </div>
+        <div class="day-cells"></div>
+        <div class="row-total"></div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
