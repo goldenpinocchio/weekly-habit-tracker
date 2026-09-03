@@ -110,7 +110,7 @@ function blankSlot() {
 function blankWeek() {
   return {
     mission: '',
-    slots: [blankSlot()],
+    slots: Array.from({ length: 5 }, () => blankSlot()),
   };
 }
 
@@ -146,7 +146,7 @@ function normalizeWeek(raw = {}) {
     mission: raw.mission || raw.note || '',
     slots: Array.isArray(raw.slots) ? raw.slots.map(normalizeSlot) : [],
   };
-  if (!week.slots.length) week.slots.push(blankSlot());
+  while (week.slots.length < 5) week.slots.push(blankSlot());
   return week;
 }
 
@@ -238,7 +238,7 @@ function ensureWeek(weekKey) {
   }
 
   const week = normalizeWeek(state.weeks[weekKey]);
-  if (!week.slots.length) week.slots.push(blankSlot());
+  while (week.slots.length < 5) week.slots.push(blankSlot());
   week.slots = week.slots.map(normalizeSlot);
   state.weeks[weekKey] = week;
   return week;
@@ -322,11 +322,7 @@ function makeHabitHeader(slot, week) {
 
   top.append(name, badge);
 
-  const hint = document.createElement('span');
-  hint.className = 'slot-hint';
-  hint.textContent = habit ? 'Tap to edit' : 'Tap to create';
-
-  button.append(top, hint);
+  button.append(top);
   button.addEventListener('click', () => openSlotDialog(slot.id, week));
   return button;
 }
@@ -338,22 +334,22 @@ function makeHabitCell(slot, dayIndex, week) {
   button.type = 'button';
   button.className = `day-cell ${habit ? 'day-cell--active' : 'day-cell--empty'} ${value ? 'day-cell--filled' : ''}`;
 
-  if (!habit) {
-    const plus = document.createElement('span');
-    plus.className = 'cell-plus';
-    plus.textContent = '+';
-    button.appendChild(plus);
-    button.addEventListener('click', () => openSlotDialog(slot.id, week));
-  } else if (value > 0) {
+  if (value > 0) {
     button.appendChild(heartElement(value));
-    button.addEventListener('click', () => toggleDay(slot.id, dayIndex));
   } else {
     const ghost = document.createElement('span');
     ghost.className = 'cell-ghost';
-    ghost.textContent = 'Tap';
+    ghost.textContent = '♡';
     button.appendChild(ghost);
-    button.addEventListener('click', () => toggleDay(slot.id, dayIndex));
   }
+
+  button.addEventListener('click', () => {
+    if (!habit) {
+      openSlotDialog(slot.id, week);
+      return;
+    }
+    toggleDay(slot.id, dayIndex);
+  });
 
   return button;
 }

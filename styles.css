@@ -344,7 +344,7 @@ button.danger {
 .cell-plus,
 .cell-ghost {
   display: block;
-  font-size: 2rem;
+  font-size: 1.85rem;
   line-height: .8;
   font-weight: 800;
   color: #ff74b0;
@@ -352,6 +352,7 @@ button.danger {
 
 .cell-ghost {
   opacity: .55;
+  transform: translateY(-1px);
 }
 
 .day-cell {
@@ -359,6 +360,14 @@ button.danger {
   padding: 0;
   display: grid;
   place-items: center;
+}
+
+.day-cell--empty {
+  background: linear-gradient(180deg, #fbf4e5, #f6ead0);
+}
+
+.habit-header--empty {
+  background: linear-gradient(180deg, #fff1d9, #f8e7c7);
 }
 
 .habit-add-row {
