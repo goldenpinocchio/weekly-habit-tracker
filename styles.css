@@ -14,8 +14,7 @@
   --accent-3: #ffd56d;
   --danger: #ff7f91;
   --shadow: 0 28px 74px rgba(0, 0, 0, 0.52), 0 0 40px rgba(255, 95, 179, 0.16);
-  --day-col: clamp(104px, 31vw, 128px);
-  --slot-min: 0px;
+  --habit-col: clamp(104px, 30vw, 136px);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -216,16 +215,15 @@ button.danger {
 .board-row {
   display: grid;
   gap: 0;
-  grid-template-columns: var(--day-col) repeat(var(--slot-count), minmax(var(--slot-min), 1fr));
+  grid-template-columns: var(--habit-col) repeat(7, minmax(0, 1fr));
 }
 
 .board-corner,
-.day-label-cell,
-.slot-header,
-.slot-add,
-.day-cell,
-.board-spacer {
-  min-height: 68px;
+.day-header-cell,
+.habit-header,
+.habit-add-row,
+.day-cell {
+  min-height: 62px;
   border-radius: 0;
   border: 1px solid rgba(111, 82, 103, 0.44);
   box-shadow: none;
@@ -241,6 +239,10 @@ button.danger {
   gap: 4px;
 }
 
+.board-corner--top {
+  min-height: 68px;
+}
+
 .board-eyebrow {
   color: #ff9ec9;
   font-size: .8rem;
@@ -248,12 +250,10 @@ button.danger {
 }
 
 .board-corner strong {
-  color: #ffbde0;
-  font-size: .7rem;
-  line-height: 1.15;
+  display: none;
 }
 
-.day-label-cell {
+.day-header-cell {
   appearance: none;
   background: linear-gradient(180deg, #1e3176 0%, #10255d 100%);
   color: #b3f2d8;
@@ -278,15 +278,15 @@ button.danger {
   text-transform: uppercase;
 }
 
-.slot-header,
-.slot-add,
+.habit-header,
+.habit-add-row,
 .day-cell {
   background: #f9efdb;
 }
 
-.slot-header {
+.habit-header {
   width: 100%;
-  padding: 10px 10px 8px;
+  padding: 8px 10px 7px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -295,9 +295,9 @@ button.danger {
   align-items: flex-start;
 }
 
-.slot-header--filled,
-.slot-header--empty,
-.slot-add {
+.habit-header--filled,
+.habit-header--empty,
+.habit-add-row {
   background: #fbf2de;
 }
 
@@ -314,7 +314,7 @@ button.danger {
   transform: none;
   max-height: none;
   font-family: "Comic Sans MS", "Marker Felt", "Bradley Hand", cursive;
-  font-size: .95rem;
+  font-size: .9rem;
   font-weight: 700;
   line-height: 1.05;
   color: #1a2946;
@@ -359,6 +359,32 @@ button.danger {
   padding: 0;
   display: grid;
   place-items: center;
+}
+
+.habit-add-row {
+  width: 100%;
+  padding: 8px 10px 7px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  color: #12305a;
+}
+
+.habit-add-label {
+  display: grid;
+  place-items: center;
+  min-height: 62px;
+  border: 1px solid rgba(111, 82, 103, 0.44);
+  background: linear-gradient(180deg, #1e3176 0%, #10255d 100%);
+  color: #b3f2d8;
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.habit-add-row--wide {
+  justify-content: flex-start;
 }
 
 .day-cell--empty {
@@ -708,6 +734,7 @@ button:focus-visible {
     min-height: calc(100dvh - 16px);
     padding: 10px;
     border-radius: 34px;
+    --habit-col: clamp(92px, 27vw, 118px);
   }
 
   .habit-app {
@@ -735,16 +762,15 @@ button:focus-visible {
   }
 
   .board-row {
-    grid-template-columns: minmax(104px, 1.2fr) repeat(var(--slot-count), minmax(0, 1fr));
+    grid-template-columns: var(--habit-col) repeat(7, minmax(0, 1fr));
   }
 
   .board-corner,
-  .day-label-cell,
-  .slot-header,
-  .slot-add,
-  .day-cell,
-  .board-spacer {
-    min-height: 58px;
+  .day-header-cell,
+  .habit-header,
+  .habit-add-row,
+  .day-cell {
+    min-height: 54px;
   }
 
   .board-corner {
@@ -760,11 +786,19 @@ button:focus-visible {
   }
 
   .slot-name {
-    font-size: .82rem;
+    font-size: .77rem;
   }
 
   .slot-hint {
-    font-size: .56rem;
+    font-size: .55rem;
+  }
+
+  .day-short {
+    font-size: .95rem;
+  }
+
+  .day-name {
+    font-size: .52rem;
   }
 
   .heart {

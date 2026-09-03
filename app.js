@@ -290,16 +290,24 @@ function makeCornerCell() {
   eyebrow.className = 'board-eyebrow';
   eyebrow.textContent = 'DAILY HABIT TRACKER';
   const title = document.createElement('strong');
-  title.textContent = 'Tap a habit row to edit, then tap hearts to track the week.';
-  corner.append(eyebrow, title);
+  title.textContent = '';
+  corner.append(eyebrow);
   return corner;
 }
 
-function makeSlotHeader(slot, week) {
+function makeDayHeaderCell(day) {
+  const cell = document.createElement('div');
+  cell.className = 'day-header-cell';
+  cell.innerHTML = `<span class="day-short">${day.short}</span>`;
+  cell.title = day.name;
+  return cell;
+}
+
+function makeHabitHeader(slot, week) {
   const habit = getHabit(slot.habitId);
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = `slot-header ${habit ? 'slot-header--filled' : 'slot-header--empty'}`;
+  button.className = `habit-header ${habit ? 'habit-header--filled' : 'habit-header--empty'}`;
 
   const top = document.createElement('span');
   top.className = 'slot-header-top';
@@ -316,29 +324,14 @@ function makeSlotHeader(slot, week) {
 
   const hint = document.createElement('span');
   hint.className = 'slot-hint';
-  hint.textContent = habit ? 'Tap to swap' : 'Tap to create';
+  hint.textContent = habit ? 'Tap to edit' : 'Tap to create';
 
   button.append(top, hint);
   button.addEventListener('click', () => openSlotDialog(slot.id, week));
   return button;
 }
 
-function makeAddHeader(week) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'slot-add';
-  const plus = document.createElement('span');
-  plus.className = 'slot-plus';
-  plus.textContent = '+';
-  const text = document.createElement('span');
-  text.className = 'slot-hint';
-  text.textContent = 'Add';
-  button.append(plus, text);
-  button.addEventListener('click', () => addNewSlotAndPick(week));
-  return button;
-}
-
-function makeDayCell(slot, dayIndex, week) {
+function makeHabitCell(slot, dayIndex, week) {
   const habit = getHabit(slot.habitId);
   const value = slot.cells[dayIndex] || 0;
   const button = document.createElement('button');
@@ -365,10 +358,19 @@ function makeDayCell(slot, dayIndex, week) {
   return button;
 }
 
-function makeSpacerCell() {
-  const spacer = document.createElement('div');
-  spacer.className = 'board-spacer';
-  return spacer;
+function makeAddHabitCell(week) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'habit-add-row';
+  const plus = document.createElement('span');
+  plus.className = 'slot-plus';
+  plus.textContent = '+';
+  const text = document.createElement('span');
+  text.className = 'slot-hint';
+  text.textContent = 'Add habit';
+  button.append(plus, text);
+  button.addEventListener('click', () => addNewSlotAndPick(week));
+  return button;
 }
 
 function render() {
@@ -386,35 +388,36 @@ function render() {
   if (els.progressFill) els.progressFill.style.width = `${Math.max(6, progressRatio * 100)}%`;
   els.mission.value = week.mission || '';
 
-  const slotCount = week.slots.length + 1;
-  els.trackerBoard.style.setProperty('--slot-count', String(slotCount));
+  els.trackerBoard.style.setProperty('--habit-count', String(week.slots.length + 1));
   els.trackerBoard.innerHTML = '';
 
   const header = document.createElement('div');
   header.className = 'board-row board-row--header';
-  header.appendChild(makeCornerCell());
-  week.slots.forEach((slot) => header.appendChild(makeSlotHeader(slot, week)));
-  header.appendChild(makeAddHeader(week));
+  const corner = makeCornerCell();
+  corner.classList.add('board-corner--top');
+  header.appendChild(corner);
+  DAYS.forEach((day) => header.appendChild(makeDayHeaderCell(day)));
   els.trackerBoard.appendChild(header);
 
-  DAYS.forEach((day, dayIndex) => {
+  week.slots.forEach((slot) => {
     const row = document.createElement('div');
     row.className = 'board-row';
-
-    const dayLabel = document.createElement('button');
-    dayLabel.type = 'button';
-    dayLabel.className = 'day-label-cell';
-    dayLabel.innerHTML = `<span class="day-short">${day.short}</span><span class="day-name">${day.name}</span>`;
-    dayLabel.title = day.name;
-    dayLabel.addEventListener('click', () => {
-      // Weekday labels stay informational in v1.
-    });
-    row.appendChild(dayLabel);
-
-    week.slots.forEach((slot) => row.appendChild(makeDayCell(slot, dayIndex, week)));
-    row.appendChild(makeSpacerCell());
+    row.appendChild(makeHabitHeader(slot, week));
+    DAYS.forEach((_, dayIndex) => row.appendChild(makeHabitCell(slot, dayIndex, week)));
     els.trackerBoard.appendChild(row);
   });
+
+  const addRow = document.createElement('div');
+  addRow.className = 'board-row board-row--add';
+  const addLabel = document.createElement('div');
+  addLabel.className = 'habit-add-label';
+  addLabel.textContent = 'NEW';
+  addRow.appendChild(addLabel);
+  const addCell = makeAddHabitCell(week);
+  addCell.classList.add('habit-add-row--wide');
+  addCell.style.gridColumn = 'span 7';
+  addRow.appendChild(addCell);
+  els.trackerBoard.appendChild(addRow);
 }
 
 function toggleDay(slotId, dayIndex) {
