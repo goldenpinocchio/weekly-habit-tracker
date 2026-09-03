@@ -1,4 +1,4 @@
-const CACHE = 'habit-planner-cache-v9';
+const CACHE = 'habit-planner-cache-v10';
 const ASSETS = ['index.html', 'styles.css', 'app.js', 'manifest.json'];
 
 self.addEventListener('install', (event) => {
