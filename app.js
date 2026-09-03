@@ -288,9 +288,7 @@ function makeCornerCell() {
   corner.className = 'board-corner';
   const eyebrow = document.createElement('span');
   eyebrow.className = 'board-eyebrow';
-  eyebrow.textContent = 'DAILY HABIT TRACKER';
-  const title = document.createElement('strong');
-  title.textContent = '';
+  eyebrow.textContent = 'HABITS';
   corner.append(eyebrow);
   return corner;
 }
@@ -316,11 +314,7 @@ function makeHabitHeader(slot, week) {
   name.className = 'slot-name';
   name.textContent = habit ? habit.name : '+ Habit';
 
-  const badge = document.createElement('span');
-  badge.className = 'slot-badge';
-  badge.textContent = habit ? `${habit.pointsPerTap} pt` : 'Add';
-
-  top.append(name, badge);
+  top.append(name);
 
   button.append(top);
   button.addEventListener('click', () => openSlotDialog(slot.id, week));
@@ -357,16 +351,20 @@ function makeHabitCell(slot, dayIndex, week) {
 function makeAddHabitCell(week) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'habit-add-row';
-  const plus = document.createElement('span');
-  plus.className = 'slot-plus';
-  plus.textContent = '+';
-  const text = document.createElement('span');
-  text.className = 'slot-hint';
-  text.textContent = 'Add habit';
-  button.append(plus, text);
+  button.className = 'habit-add-label';
+  button.textContent = 'NEW';
   button.addEventListener('click', () => addNewSlotAndPick(week));
   return button;
+}
+
+function makeEmptyDayCell() {
+  const cell = document.createElement('div');
+  cell.className = 'day-cell day-cell--empty day-cell--blank';
+  const ghost = document.createElement('span');
+  ghost.className = 'cell-ghost';
+  ghost.textContent = '♡';
+  cell.appendChild(ghost);
+  return cell;
 }
 
 function render() {
@@ -405,14 +403,8 @@ function render() {
 
   const addRow = document.createElement('div');
   addRow.className = 'board-row board-row--add';
-  const addLabel = document.createElement('div');
-  addLabel.className = 'habit-add-label';
-  addLabel.textContent = 'NEW';
-  addRow.appendChild(addLabel);
-  const addCell = makeAddHabitCell(week);
-  addCell.classList.add('habit-add-row--wide');
-  addCell.style.gridColumn = 'span 7';
-  addRow.appendChild(addCell);
+  addRow.appendChild(makeAddHabitCell(week));
+  DAYS.forEach(() => addRow.appendChild(makeEmptyDayCell()));
   els.trackerBoard.appendChild(addRow);
 }
 
