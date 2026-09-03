@@ -17,9 +17,7 @@ const LEGACY_PATTERN_MAP = {
 
 const els = {
   weekTitle: document.getElementById('weekTitle'),
-  weekRange: document.getElementById('weekRange'),
   runningTotal: document.getElementById('runningTotal'),
-  weeklyPossible: document.getElementById('weeklyPossible'),
   weekNote: document.getElementById('weekNote'),
   trackerGrid: document.getElementById('trackerGrid'),
   habitDialog: document.getElementById('habitDialog'),
@@ -67,11 +65,26 @@ function addDays(date, days) {
 function formatRange(weekStartKey) {
   const start = fromKey(weekStartKey);
   const end = addDays(start, 6);
-  return `${start.toLocaleDateString([], { month: 'short', day: 'numeric' })} — ${end.toLocaleDateString([], { month: 'short', day: 'numeric' })}`;
+  return `${formatDayLabel(start)} - ${formatDayLabel(end)}`;
 }
 
 function formatTitle(weekStartKey) {
-  return `Week of ${fromKey(weekStartKey).toLocaleDateString([], { month: 'long', day: 'numeric' })}`;
+  return formatRange(weekStartKey);
+}
+
+function ordinalSuffix(day) {
+  if (day % 100 >= 11 && day % 100 <= 13) return 'th';
+  switch (day % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+}
+
+function formatDayLabel(date) {
+  const day = date.getDate();
+  return `${date.toLocaleDateString([], { month: 'short' })} ${day}${ordinalSuffix(day)}`;
 }
 
 function patternInfo(pattern) {
@@ -191,25 +204,22 @@ function calculateHabitTotal(week, habitId) {
 
 function calculateWeeklyTotals(week) {
   const runningTotal = week.habits.reduce((sum, habit) => sum + calculateHabitTotal(week, habit.id), 0);
-  const weeklyPossible = week.habits.reduce((sum, habit) => sum + patternInfo(habit.pattern).maxPoints * 7, 0);
-  return { runningTotal, weeklyPossible };
+  return { runningTotal };
 }
 
 function render() {
   const week = currentWeek();
-  const { runningTotal, weeklyPossible } = calculateWeeklyTotals(week);
+  const { runningTotal } = calculateWeeklyTotals(week);
 
   els.weekTitle.textContent = formatTitle(state.currentWeekStart);
-  els.weekRange.textContent = formatRange(state.currentWeekStart);
   els.runningTotal.textContent = String(runningTotal);
-  els.weeklyPossible.textContent = String(weeklyPossible);
   els.weekNote.value = week.note || '';
 
   els.trackerGrid.innerHTML = '';
 
   const dayHeader = document.createElement('div');
   dayHeader.className = 'tracker-days';
-  dayHeader.innerHTML = `<div></div>${DAYS.map((day) => `<div class="day-label">${day}</div>`).join('')}<div class="day-label">Pts</div>`;
+  dayHeader.innerHTML = `<div></div>${DAYS.map((day) => `<div class="day-label">${day}</div>`).join('')}`;
   els.trackerGrid.appendChild(dayHeader);
 
   if (week.habits.length === 0) {
@@ -228,11 +238,9 @@ function render() {
     const editBtn = row.querySelector('.habit-edit');
     const points = row.querySelector('.habit-points');
     const cells = row.querySelector('.day-cells');
-    const rowTotal = row.querySelector('.row-total');
 
     editBtn.textContent = habit.name;
     points.textContent = patternInfo(habit.pattern).label;
-    rowTotal.textContent = calculateHabitTotal(week, habit.id);
 
     editBtn.addEventListener('click', () => openHabitDialog(habit));
 

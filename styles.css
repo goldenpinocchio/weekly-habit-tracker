@@ -88,7 +88,7 @@ button.danger {
 .app-shell {
   min-height: 100%;
   padding: calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 18px);
-  max-width: 720px;
+  max-width: 1040px;
   margin: 0 auto;
   position: relative;
 }
@@ -117,6 +117,12 @@ button.danger {
   justify-content: space-between;
 }
 
+.topbar-copy {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+}
+
 .eyebrow {
   margin: 0 0 4px;
   font-size: .75rem;
@@ -139,7 +145,6 @@ h1 {
 .summary-label,
 .eyebrow,
 .habit-points,
-.row-total,
 .day-label {
   letter-spacing: 0.03em;
 }
@@ -153,6 +158,15 @@ h1 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.summary-bottom {
+  margin-top: 6px;
+  grid-template-columns: 1fr;
+}
+
+.note-bottom {
+  margin-top: 8px;
 }
 
 .summary-card,
@@ -268,7 +282,7 @@ textarea { resize: vertical; min-height: 84px; }
 
 .tracker-days {
   display: grid;
-  grid-template-columns: minmax(92px, 1.4fr) repeat(7, minmax(30px, .62fr)) 48px;
+  grid-template-columns: minmax(112px, 1.35fr) repeat(7, minmax(34px, .6fr));
   gap: 6px;
   align-items: center;
   position: sticky;
@@ -289,7 +303,7 @@ textarea { resize: vertical; min-height: 84px; }
 
 .habit-row {
   display: grid;
-  grid-template-columns: minmax(92px, 1.4fr) repeat(7, minmax(30px, .62fr)) 48px;
+  grid-template-columns: minmax(112px, 1.35fr) repeat(7, minmax(34px, .6fr));
   gap: 6px;
   align-items: center;
 }
@@ -361,10 +375,6 @@ textarea { resize: vertical; min-height: 84px; }
   box-shadow: 0 0 0 1px rgba(255, 79, 216, 0.12), 0 0 18px rgba(255, 79, 216, 0.18);
 }
 
-.row-total {
-  font-weight: 700;
-}
-
 .footer-actions {
   justify-content: space-between;
 }
@@ -414,9 +424,50 @@ textarea { resize: vertical; min-height: 84px; }
   background: transparent;
 }
 
+@media (orientation: landscape) and (max-height: 560px) {
+  .app-shell {
+    max-width: 1280px;
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+
+  .topbar {
+    margin-bottom: 8px;
+  }
+
+  .tracker-shell {
+    padding: 12px;
+  }
+
+  .tracker-days,
+  .habit-row {
+    grid-template-columns: minmax(126px, 1.55fr) repeat(7, minmax(36px, .58fr));
+    gap: 5px;
+  }
+
+  .day-cells {
+    gap: 5px;
+  }
+
+  .day-label {
+    font-size: .76rem;
+  }
+
+  .habit-edit {
+    padding: .68rem .72rem;
+  }
+
+  .summary-card strong {
+    font-size: 1.7rem;
+  }
+
+  textarea {
+    min-height: 72px;
+  }
+}
+
 @media (max-width: 480px) {
   .topbar { flex-direction: column; }
-  .summary-grid { grid-template-columns: 1fr; }
   .tracker-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -434,7 +485,7 @@ textarea { resize: vertical; min-height: 84px; }
   }
   .tracker-days,
   .habit-row {
-    grid-template-columns: minmax(88px, 1.35fr) repeat(7, minmax(24px, .55fr)) 42px;
+    grid-template-columns: minmax(90px, 1.35fr) repeat(7, minmax(24px, .55fr));
     gap: 4px;
   }
   button { padding: .64rem .82rem; }

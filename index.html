@@ -11,10 +11,8 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Midnight Habit Club</p>
+        <div class="topbar-copy">
           <h1 id="weekTitle">Week</h1>
-          <p id="weekRange" class="subtle"></p>
         </div>
         <div class="topbar-actions">
           <button data-action="prev-week">‹</button>
@@ -23,25 +21,9 @@
         </div>
       </header>
 
-      <section class="summary-grid" aria-label="Weekly totals">
-        <article class="summary-card accent">
-          <span class="summary-label">Running Total</span>
-          <strong id="runningTotal">0</strong>
-        </article>
-        <article class="summary-card">
-          <span class="summary-label">Weekly Possible</span>
-          <strong id="weeklyPossible">0</strong>
-        </article>
-      </section>
-
-      <section class="planner-note">
-        <label for="weekNote">Weekly note</label>
-        <textarea id="weekNote" rows="4" placeholder="Plan your week here..."></textarea>
-      </section>
-
       <section class="tracker-shell">
         <div class="tracker-toolbar">
-          <span class="tracker-title">Habit Tracker</span>
+          <span class="tracker-title">Weekly tracker</span>
           <div class="tracker-actions">
             <button data-action="add-habit">+ Habit</button>
             <button data-action="copy-week">Copy Week</button>
@@ -50,6 +32,18 @@
         </div>
 
         <div class="tracker-grid" id="trackerGrid" role="grid" aria-label="Habit tracking grid"></div>
+      </section>
+
+      <section class="summary-grid summary-bottom" aria-label="Weekly totals">
+        <article class="summary-card accent">
+          <span class="summary-label">Running Total</span>
+          <strong id="runningTotal">0</strong>
+        </article>
+      </section>
+
+      <section class="planner-note note-bottom">
+        <label for="weekNote">Weekly note</label>
+        <textarea id="weekNote" rows="4" placeholder="Plan your week here..."></textarea>
       </section>
 
       <footer class="footer-actions">
@@ -106,7 +100,6 @@
           <span class="habit-points"></span>
         </div>
         <div class="day-cells"></div>
-        <div class="row-total"></div>
       </article>
     </template>
 
