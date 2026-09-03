@@ -15,6 +15,7 @@ const els = {
   trackerBoard: document.getElementById('trackerBoard'),
   totalHearts: document.getElementById('totalHearts'),
   totalPoints: document.getElementById('totalPoints'),
+  progressFill: document.getElementById('progressFill'),
   mission: document.getElementById('mission'),
   habitDialog: document.getElementById('habitDialog'),
   habitForm: document.getElementById('habitForm'),
@@ -36,18 +37,6 @@ let state = loadState();
 let pendingSlotId = null;
 let editingHabitId = null;
 let activeSlotId = null;
-
-function updatePortraitFit() {
-  const portraitMode = window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
-  if (!portraitMode) {
-    document.documentElement.style.removeProperty('--portrait-scale');
-    return;
-  }
-
-  const viewportWidth = window.visualViewport?.width || window.innerWidth;
-  const scale = Math.min(1, Math.max(0.58, viewportWidth / 680));
-  document.documentElement.style.setProperty('--portrait-scale', scale.toFixed(3));
-}
 
 function uid() {
   return crypto.randomUUID();
@@ -94,7 +83,15 @@ function formatDayLabel(date) {
 function formatWeekRange(weekStartKey) {
   const start = fromKey(weekStartKey);
   const end = addDays(start, 6);
-  return `${formatDayLabel(start)} - ${formatDayLabel(end)}`;
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const startMonth = start.toLocaleDateString([], { month: 'long' });
+  const endMonth = end.toLocaleDateString([], { month: 'long' });
+
+  if (sameMonth) {
+    return `${startMonth} ${start.getDate()}–${end.getDate()}`;
+  }
+
+  return `${startMonth} ${start.getDate()}–${endMonth} ${end.getDate()}`;
 }
 
 function formatPoints(points) {
@@ -291,9 +288,9 @@ function makeCornerCell() {
   corner.className = 'board-corner';
   const eyebrow = document.createElement('span');
   eyebrow.className = 'board-eyebrow';
-  eyebrow.textContent = 'Daily rhythm';
+  eyebrow.textContent = 'DAILY HABIT TRACKER';
   const title = document.createElement('strong');
-  title.textContent = 'Tap a habit column to edit, then tap hearts in the week.';
+  title.textContent = 'Tap a habit row to edit, then tap hearts to track the week.';
   corner.append(eyebrow, title);
   return corner;
 }
@@ -377,10 +374,16 @@ function makeSpacerCell() {
 function render() {
   const week = currentWeek();
   const totals = weekTotals(week);
+  const maxPoints = week.slots.reduce((sum, slot) => {
+    const habit = getHabit(slot.habitId);
+    return sum + (habit ? habit.pointsPerTap * 7 : 0);
+  }, 0);
+  const progressRatio = maxPoints ? Math.min(1, totals.points / maxPoints) : 0;
 
   els.weekTitle.textContent = formatWeekRange(state.currentWeekStart);
   els.totalHearts.textContent = formatPoints(totals.points);
-  els.totalPoints.textContent = `${totals.points} pts`;
+  els.totalPoints.textContent = `${totals.points} / ${maxPoints || 0}`;
+  if (els.progressFill) els.progressFill.style.width = `${Math.max(6, progressRatio * 100)}%`;
   els.mission.value = week.mission || '';
 
   const slotCount = week.slots.length + 1;
@@ -714,12 +717,7 @@ els.slotDialog.addEventListener('close', () => {
 // Boot.
 ensureWeek(state.currentWeekStart);
 saveState();
-updatePortraitFit();
 render();
-
-window.addEventListener('resize', updatePortraitFit);
-window.addEventListener('orientationchange', updatePortraitFit);
-window.visualViewport?.addEventListener('resize', updatePortraitFit);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

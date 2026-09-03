@@ -16,31 +16,39 @@
             <button class="week-nav" type="button" data-action="prev-week" aria-label="Previous week">‹</button>
             <div class="week-heading">
               <p class="eyebrow">Weekly Habit Tracker</p>
-              <h1 id="weekTitle">Aug 31st - Sep 6th</h1>
+              <h1 id="weekTitle">July 14–20</h1>
             </div>
             <button class="week-nav" type="button" data-action="next-week" aria-label="Next week">›</button>
           </div>
 
-          <div class="planner-stage">
-            <div class="board-wrap">
-              <div id="trackerBoard" class="tracker-board" role="grid" aria-label="Week grid"></div>
-            </div>
-
-            <aside class="planner-rail" aria-label="Planner art">
-              <div class="planner-rail__title">DAILY HABIT TRACKER</div>
-              <div class="planner-rail__days" aria-hidden="true">
-                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-              </div>
-              <div class="planner-rail__shine"></div>
-            </aside>
+          <div class="board-wrap">
+            <div id="trackerBoard" class="tracker-board" role="grid" aria-label="Week grid"></div>
           </div>
         </section>
 
-        <section class="bottom-panels">
-          <article class="summary-card accent" aria-label="Hearts earned this week">
-            <span class="summary-label">Total hearts earned</span>
-            <strong id="totalHearts">0</strong>
-            <span id="totalPoints" class="summary-sub">0 pts</span>
+        <section class="progress-grid" aria-label="Week progress and mission">
+          <article class="progress-card accent">
+            <div class="progress-gadget" aria-hidden="true">
+              <div class="progress-gadget__screen">
+                <span class="progress-gadget__heart">♥</span>
+                <span class="progress-gadget__face">◡</span>
+              </div>
+              <div class="progress-gadget__buttons">
+                <span></span><span></span>
+              </div>
+            </div>
+
+            <div class="progress-copy">
+              <p class="progress-label">WEEK PROGRESS</p>
+              <strong id="totalHearts">0</strong>
+              <span id="totalPoints" class="progress-sub">0 / 0</span>
+              <div class="progress-bar" aria-hidden="true">
+                <span id="progressFill"></span>
+              </div>
+              <div class="progress-message">
+                You’re building amazing habits! <span class="progress-message__heart">♥</span>
+              </div>
+            </div>
           </article>
 
           <article class="mission-card" aria-label="Weekly mission">
@@ -49,11 +57,30 @@
           </article>
         </section>
 
-        <section class="toolbar" aria-label="Week actions">
+        <section class="toolbar toolbar--compact" aria-label="Week actions">
           <button type="button" data-action="copy-previous">Copy previous week</button>
           <button type="button" data-action="backup">Export / Import</button>
           <button type="button" data-action="today">Today</button>
         </section>
+
+        <nav class="bottom-nav" aria-label="App sections">
+          <button type="button" class="nav-item nav-item--active">
+            <span>⌂</span>
+            <small>Habits</small>
+          </button>
+          <button type="button" class="nav-item">
+            <span>▮▮</span>
+            <small>Stats</small>
+          </button>
+          <button type="button" class="nav-item">
+            <span>★</span>
+            <small>Achievements</small>
+          </button>
+          <button type="button" class="nav-item" data-action="backup">
+            <span>⚙</span>
+            <small>Settings</small>
+          </button>
+        </nav>
       </main>
     </div>
 
