@@ -665,3 +665,37 @@ button:focus-visible {
     min-height: 58px;
   }
 }
+
+@media (max-width: 900px) and (orientation: portrait) {
+  html, body {
+    overflow: hidden;
+  }
+
+  .app-shell {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: center center;
+    transform: translate(-50%, -50%) rotate(90deg);
+    padding: calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 8px) calc(env(safe-area-inset-left) + 8px);
+  }
+
+  .habit-app {
+    height: 100%;
+    gap: 10px;
+  }
+
+  .planner-stage {
+    grid-template-columns: minmax(0, 1fr) 72px;
+  }
+
+  .planner-rail__title {
+    font-size: .88rem;
+  }
+
+  .planner-rail__days {
+    font-size: .8rem;
+  }
+}

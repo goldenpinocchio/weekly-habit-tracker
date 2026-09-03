@@ -3,6 +3,7 @@
   "short_name": "Habits",
   "start_url": ".",
   "display": "standalone",
+  "orientation": "landscape",
   "background_color": "#13081f",
   "theme_color": "#13081f",
   "icons": []
