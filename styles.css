@@ -675,27 +675,112 @@ button:focus-visible {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 100vh;
-    height: 100vw;
+    width: 100dvh;
+    height: 100dvw;
     transform-origin: center center;
-    transform: translate(-50%, -50%) rotate(90deg);
+    transform: translate(-50%, -50%) rotate(90deg) scale(var(--portrait-scale, 1));
     padding: calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 8px) calc(env(safe-area-inset-left) + 8px);
+    will-change: transform;
   }
 
   .habit-app {
     height: 100%;
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .frame {
+    padding: 10px;
+  }
+
+  .frame-top {
+    margin-bottom: 8px;
   }
 
   .planner-stage {
-    grid-template-columns: minmax(0, 1fr) 72px;
+    grid-template-columns: minmax(0, 1fr) 64px;
+    gap: 8px;
   }
 
   .planner-rail__title {
-    font-size: .88rem;
+    font-size: .8rem;
   }
 
   .planner-rail__days {
-    font-size: .8rem;
+    font-size: .72rem;
+  }
+
+  .board-corner,
+  .day-label-cell,
+  .slot-header,
+  .slot-add,
+  .day-cell,
+  .board-spacer {
+    min-height: 46px;
+    border-radius: 14px;
+  }
+
+  .board-corner {
+    padding: 8px;
+  }
+
+  .board-eyebrow {
+    font-size: .64rem;
+  }
+
+  .board-corner strong {
+    font-size: .72rem;
+  }
+
+  .day-short {
+    font-size: .88rem;
+  }
+
+  .day-name {
+    font-size: .62rem;
+  }
+
+  .slot-header,
+  .slot-add {
+    padding: 8px;
+  }
+
+  .slot-name {
+    font-size: .62rem;
+    max-height: 78px;
+  }
+
+  .slot-badge {
+    padding: 2px 6px;
+    font-size: .6rem;
+  }
+
+  .slot-hint {
+    font-size: .58rem;
+  }
+
+  .slot-plus {
+    font-size: 1.7rem;
+  }
+
+  .summary-card,
+  .mission-card {
+    padding: 10px;
+  }
+
+  .summary-card strong {
+    font-size: 1.45rem;
+  }
+
+  textarea {
+    min-height: 64px;
+  }
+
+  .toolbar {
+    gap: 6px;
+  }
+
+  .toolbar button {
+    padding: .7rem .58rem;
+    font-size: .78rem;
   }
 }

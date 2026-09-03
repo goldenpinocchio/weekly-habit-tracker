@@ -37,6 +37,18 @@ let pendingSlotId = null;
 let editingHabitId = null;
 let activeSlotId = null;
 
+function updatePortraitFit() {
+  const portraitMode = window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
+  if (!portraitMode) {
+    document.documentElement.style.removeProperty('--portrait-scale');
+    return;
+  }
+
+  const viewportWidth = window.visualViewport?.width || window.innerWidth;
+  const scale = Math.min(1, Math.max(0.58, viewportWidth / 680));
+  document.documentElement.style.setProperty('--portrait-scale', scale.toFixed(3));
+}
+
 function uid() {
   return crypto.randomUUID();
 }
@@ -702,7 +714,12 @@ els.slotDialog.addEventListener('close', () => {
 // Boot.
 ensureWeek(state.currentWeekStart);
 saveState();
+updatePortraitFit();
 render();
+
+window.addEventListener('resize', updatePortraitFit);
+window.addEventListener('orientationchange', updatePortraitFit);
+window.visualViewport?.addEventListener('resize', updatePortraitFit);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
