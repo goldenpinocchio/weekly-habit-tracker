@@ -12,31 +12,49 @@ const DAYS = [
 
 const els = {
   weekTitle: document.getElementById('weekTitle'),
+  weekCopyPrompt: document.getElementById('weekCopyPrompt'),
   trackerBoard: document.getElementById('trackerBoard'),
-  totalHearts: document.getElementById('totalHearts'),
-  totalPoints: document.getElementById('totalPoints'),
-  progressFill: document.getElementById('progressFill'),
+  weekHearts: document.getElementById('weekHearts'),
+  weekSubtitle: document.getElementById('weekSubtitle'),
+  allTimeHearts: document.getElementById('allTimeHearts'),
+  summaryCard: document.querySelector('.summary-card--home'),
   mission: document.getElementById('mission'),
+  missionSave: document.getElementById('missionSave'),
+  monthTitle: document.getElementById('monthTitle'),
+  monthOverview: document.getElementById('monthOverview'),
+  monthTotalHearts: document.getElementById('monthTotalHearts'),
+  screenHabits: document.getElementById('screenHabits'),
+  screenMonth: document.getElementById('screenMonth'),
+  screenSettings: document.getElementById('screenSettings'),
   habitDialog: document.getElementById('habitDialog'),
   habitForm: document.getElementById('habitForm'),
   habitDialogTitle: document.getElementById('habitDialogTitle'),
   habitId: document.getElementById('habitId'),
   habitName: document.getElementById('habitName'),
   habitPoints: document.getElementById('habitPoints'),
+  habitPointsPreview: document.getElementById('habitPointsPreview'),
   habitDelete: document.getElementById('habitDelete'),
   slotDialog: document.getElementById('slotDialog'),
   slotDialogTitle: document.getElementById('slotDialogTitle'),
-  slotDialogMeta: document.getElementById('slotDialogMeta'),
   slotOptions: document.getElementById('slotOptions'),
   slotId: document.getElementById('slotId'),
+  slotManage: document.getElementById('slotManage'),
+  slotDelete: document.getElementById('slotDelete'),
   exportBackup: document.getElementById('exportBackup'),
   importBackup: document.getElementById('importBackup'),
 };
 
 let state = loadState();
+state.activeScreen = state.activeScreen || 'habits';
+state.selectedMonthKey = state.selectedMonthKey || monthKey(new Date());
 let pendingSlotId = null;
 let editingHabitId = null;
 let activeSlotId = null;
+let habitManageMode = false;
+let habitDialogScrollY = 0;
+let habitSaveFlashTimer = null;
+let habitDialogReturnSlotId = null;
+let habitDialogReturnManageMode = false;
 
 function uid() {
   return crypto.randomUUID();
@@ -77,26 +95,140 @@ function ordinalSuffix(day) {
 
 function formatDayLabel(date) {
   const day = date.getDate();
-  return `${date.toLocaleDateString([], { month: 'short' })} ${day}${ordinalSuffix(day)}`;
+  return `${date.toLocaleDateString('en-US', { month: 'short' })} ${day}${ordinalSuffix(day)}`;
 }
 
 function formatWeekRange(weekStartKey) {
   const start = fromKey(weekStartKey);
   const end = addDays(start, 6);
-  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
-  const startMonth = start.toLocaleDateString([], { month: 'long' });
-  const endMonth = end.toLocaleDateString([], { month: 'long' });
+  const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
+  const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+  const startDay = start.getDate();
+  const endDay = end.getDate();
 
-  if (sameMonth) {
-    return `${startMonth} ${start.getDate()}–${end.getDate()}`;
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return {
+      text: `${startMonth} ${startDay}${ordinalSuffix(startDay)} - ${endDay}${ordinalSuffix(endDay)}`,
+      split: false,
+    };
   }
 
-  return `${startMonth} ${start.getDate()}–${endMonth} ${end.getDate()}`;
+  return {
+    startMonth,
+    startDay: `${startDay}${ordinalSuffix(startDay)}`,
+    endMonth,
+    endDay: `${endDay}${ordinalSuffix(endDay)}`,
+    split: true,
+  };
+}
+
+function renderWeekTitle(weekRange) {
+  if (!weekRange.split) return weekRange.text;
+
+  return `
+    <span class="week-title-grid">
+      <span class="week-title-month">${weekRange.startMonth}</span>
+      <span class="week-title-day">${weekRange.startDay}</span>
+      <span class="week-title-dash">-</span>
+      <span class="week-title-month week-title-month--second">${weekRange.endMonth}</span>
+      <span class="week-title-day">${weekRange.endDay}</span>
+      <span class="week-title-dash week-title-dash--spacer" aria-hidden="true"></span>
+    </span>
+  `;
 }
 
 function formatPoints(points) {
   const hearts = points / 2;
   return Number.isInteger(hearts) ? String(hearts) : hearts.toFixed(1);
+}
+
+function monthKey(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function fromMonthKey(key) {
+  const [year, month] = key.split('-').map(Number);
+  return new Date(year, month - 1, 1);
+}
+
+function addMonths(date, months) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+function formatMonthTitle(key) {
+  return fromMonthKey(key).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+}
+
+function formatWeekCardRange(weekStartKey) {
+  const start = fromKey(weekStartKey);
+  const end = addDays(start, 6);
+  const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
+  const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+  const startDay = `${start.getDate()}${ordinalSuffix(start.getDate())}`;
+  const endDay = `${end.getDate()}${ordinalSuffix(end.getDate())}`;
+
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${startMonth} ${startDay} - ${endDay}`;
+  }
+
+  return `${startMonth} ${startDay} - ${endMonth} ${endDay}`;
+}
+
+function isWeekEmpty(week) {
+  return !week.mission && week.slots.every((slot) => !slot.habitId && slot.cells.every((cell) => cell === 0));
+}
+
+function totalAllTimePoints() {
+  return Object.values(state.weeks).reduce((sum, week) => sum + weekTotals(normalizeWeek(week)).points, 0);
+}
+
+function getSelectedMonthWeekKeys() {
+  const current = fromMonthKey(state.selectedMonthKey);
+  const firstOfMonth = new Date(current.getFullYear(), current.getMonth(), 1);
+  const month = firstOfMonth.getMonth();
+  const keys = [];
+  let cursor = new Date(firstOfMonth);
+
+  while (cursor.getDay() !== 1) {
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  while (cursor.getMonth() === month) {
+    keys.push(toKey(cursor));
+    cursor = addDays(cursor, 7);
+  }
+
+  return keys;
+}
+
+function monthWeekTotals() {
+  const keys = getSelectedMonthWeekKeys();
+  return keys.map((weekKey) => {
+    const week = state.weeks[weekKey] ? normalizeWeek(state.weeks[weekKey]) : blankWeek();
+    return {
+      weekKey,
+      range: formatWeekCardRange(weekKey),
+      points: weekTotals(week).points,
+    };
+  });
+}
+
+function renderWeekTitle(weekRange) {
+  if (!weekRange.split) return weekRange.text;
+
+  return `
+    <span class="week-title-grid">
+      <span class="week-title-month">${weekRange.startMonth}</span>
+      <span class="week-title-day">${weekRange.startDay}</span>
+      <span class="week-title-dash">-</span>
+      <span class="week-title-month week-title-month--second">${weekRange.endMonth}</span>
+      <span class="week-title-day">${weekRange.endDay}</span>
+      <span class="week-title-dash week-title-dash--spacer" aria-hidden="true"></span>
+    </span>
+  `;
 }
 
 function blankSlot() {
@@ -162,6 +294,8 @@ function loadState() {
       return {
         version: 2,
         currentWeekStart: mondayKey(new Date()),
+        activeScreen: 'habits',
+        selectedMonthKey: monthKey(new Date()),
         habits: [],
         weeks: {},
       };
@@ -173,6 +307,8 @@ function loadState() {
       return {
         version: 2,
         currentWeekStart: parsed.currentWeekStart || mondayKey(new Date()),
+        activeScreen: parsed.activeScreen || 'habits',
+        selectedMonthKey: parsed.selectedMonthKey || monthKey(new Date()),
         habits: Array.isArray(parsed.habits) ? parsed.habits.map(normalizeHabit) : [],
         weeks: Object.fromEntries(
           Object.entries(parsed.weeks || {}).map(([key, week]) => [key, normalizeWeek(week)])
@@ -215,6 +351,8 @@ function loadState() {
     return {
       version: 2,
       currentWeekStart: parsed.currentWeekStart || mondayKey(new Date()),
+      activeScreen: parsed.activeScreen || 'habits',
+      selectedMonthKey: parsed.selectedMonthKey || monthKey(new Date()),
       habits,
       weeks,
     };
@@ -222,6 +360,8 @@ function loadState() {
     return {
       version: 2,
       currentWeekStart: mondayKey(new Date()),
+      activeScreen: 'habits',
+      selectedMonthKey: monthKey(new Date()),
       habits: [],
       weeks: {},
     };
@@ -230,6 +370,12 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function saveMission() {
+  currentWeek().mission = els.mission.value;
+  saveState();
+  els.mission.blur();
 }
 
 function ensureWeek(weekKey) {
@@ -281,6 +427,15 @@ function heartElement(stateValue) {
   const heart = document.createElement('span');
   heart.className = `heart heart--${stateValue === 2 ? 'full' : 'half'}`;
   return heart;
+}
+
+function renderHeartPreview(target, pointsPerTap) {
+  if (!target) return;
+  target.replaceChildren();
+  const value = Number(pointsPerTap) === 2 ? 2 : 1;
+  const heart = heartElement(value);
+  heart.classList.add('habit-points-preview__heart');
+  target.appendChild(heart);
 }
 
 function makeCornerCell() {
@@ -348,15 +503,6 @@ function makeHabitCell(slot, dayIndex, week) {
   return button;
 }
 
-function makeAddHabitCell(week) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'habit-add-label';
-  button.textContent = 'NEW';
-  button.addEventListener('click', () => addNewSlotAndPick(week));
-  return button;
-}
-
 function makeEmptyDayCell() {
   const cell = document.createElement('div');
   cell.className = 'day-cell day-cell--empty day-cell--blank';
@@ -370,19 +516,37 @@ function makeEmptyDayCell() {
 function render() {
   const week = currentWeek();
   const totals = weekTotals(week);
-  const maxPoints = week.slots.reduce((sum, slot) => {
-    const habit = getHabit(slot.habitId);
-    return sum + (habit ? habit.pointsPerTap * 7 : 0);
-  }, 0);
-  const progressRatio = maxPoints ? Math.min(1, totals.points / maxPoints) : 0;
+  const maxHearts = week.slots.reduce((sum, slot) => sum + (getHabit(slot.habitId) ? 7 : 0), 0);
+  const allTimePoints = totalAllTimePoints();
+  const weekRange = formatWeekRange(state.currentWeekStart);
+  const monthItems = monthWeekTotals();
+  const monthTotalPoints = monthItems.reduce((sum, item) => sum + item.points, 0);
+  const weekHasContent = !isWeekEmpty(week);
 
-  els.weekTitle.textContent = formatWeekRange(state.currentWeekStart);
-  els.totalHearts.textContent = formatPoints(totals.points);
-  els.totalPoints.textContent = `${totals.points} / ${maxPoints || 0}`;
-  if (els.progressFill) els.progressFill.style.width = `${Math.max(6, progressRatio * 100)}%`;
+  els.weekTitle.innerHTML = renderWeekTitle(weekRange);
+  els.weekTitle.classList.toggle('week-title--split', weekRange.split);
+  els.weekHearts.textContent = `${formatPoints(totals.points)} / ${maxHearts || 0}`;
+  els.allTimeHearts.textContent = formatPoints(allTimePoints);
+  els.weekCopyPrompt.hidden = weekHasContent;
   els.mission.value = week.mission || '';
 
-  els.trackerBoard.style.setProperty('--habit-count', String(week.slots.length + 1));
+  els.monthTitle.textContent = formatMonthTitle(state.selectedMonthKey);
+  els.monthOverview.innerHTML = monthItems.length
+    ? monthItems
+        .map(
+          (item) => `
+            <button type="button" class="month-week-card" data-action="jump-week" data-week="${item.weekKey}">
+              <span class="month-week-card__range">${item.range}</span>
+              <strong>${formatPoints(item.points)}</strong>
+              <small>hearts</small>
+            </button>
+          `
+        )
+        .join('')
+    : '<p class="subtle">No weeks yet.</p>';
+  els.monthTotalHearts.textContent = formatPoints(monthTotalPoints);
+
+  els.trackerBoard.style.setProperty('--habit-count', String(week.slots.length));
   els.trackerBoard.innerHTML = '';
 
   const header = document.createElement('div');
@@ -401,11 +565,19 @@ function render() {
     els.trackerBoard.appendChild(row);
   });
 
-  const addRow = document.createElement('div');
-  addRow.className = 'board-row board-row--add';
-  addRow.appendChild(makeAddHabitCell(week));
-  DAYS.forEach(() => addRow.appendChild(makeEmptyDayCell()));
-  els.trackerBoard.appendChild(addRow);
+  const screenMap = {
+    habits: els.screenHabits,
+    month: els.screenMonth,
+    settings: els.screenSettings,
+  };
+  Object.entries(screenMap).forEach(([key, el]) => {
+    if (!el) return;
+    el.hidden = state.activeScreen !== key;
+  });
+
+  document.querySelectorAll('.nav-item[data-screen]').forEach((button) => {
+    button.classList.toggle('nav-item--active', button.dataset.screen === state.activeScreen);
+  });
 }
 
 function toggleDay(slotId, dayIndex) {
@@ -461,6 +633,32 @@ function copyPreviousWeek() {
   render();
 }
 
+function clearCurrentWeek() {
+  state.weeks[state.currentWeekStart] = blankWeek();
+  saveState();
+  render();
+}
+
+function setActiveScreen(screen) {
+  state.activeScreen = screen;
+  saveState();
+  render();
+}
+
+function moveMonth(delta) {
+  state.selectedMonthKey = monthKey(addMonths(fromMonthKey(state.selectedMonthKey), delta));
+  saveState();
+  render();
+}
+
+function jumpToWeek(weekKey) {
+  state.currentWeekStart = weekKey;
+  ensureWeek(state.currentWeekStart);
+  state.activeScreen = 'habits';
+  saveState();
+  render();
+}
+
 function addNewSlotAndPick(week) {
   const newSlot = blankSlot();
   week.slots.push(newSlot);
@@ -488,6 +686,18 @@ function clearSlot(slotId) {
   render();
 }
 
+function removeSlot(slotId) {
+  const week = currentWeek();
+  const index = week.slots.findIndex((slot) => slot.id === slotId);
+  if (index < 0) return;
+  week.slots.splice(index, 1);
+  if (week.slots.length === 0) {
+    week.slots.push(blankSlot());
+  }
+  saveState();
+  render();
+}
+
 function deleteHabit(habitId) {
   state.habits = state.habits.filter((habit) => habit.id !== habitId);
   for (const week of Object.values(state.weeks)) {
@@ -502,38 +712,64 @@ function deleteHabit(habitId) {
   render();
 }
 
-function openHabitDialog(habit = null) {
+function openHabitDialog(habit = null, returnSlotId = null, returnManageMode = false) {
   editingHabitId = habit?.id || null;
+  habitDialogReturnSlotId = returnSlotId;
+  habitDialogReturnManageMode = returnManageMode;
+  habitDialogScrollY = window.scrollY;
   els.habitDialogTitle.textContent = habit ? 'Edit Habit' : 'Create New Habit';
   els.habitId.value = habit?.id || '';
   els.habitName.value = habit?.name || '';
   els.habitPoints.value = String(habit?.pointsPerTap || 1);
   els.habitDelete.hidden = !habit;
+  renderHeartPreview(els.habitPointsPreview, els.habitPoints.value);
   els.habitDialog.showModal();
-  setTimeout(() => els.habitName.focus(), 40);
+  setTimeout(() => {
+    try {
+      els.habitName.focus({ preventScroll: true });
+    } catch {
+      els.habitName.focus();
+    }
+  }, 40);
 }
 
 function closeHabitDialog() {
   if (els.habitDialog.open) els.habitDialog.close();
   editingHabitId = null;
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: habitDialogScrollY, left: 0, behavior: 'auto' });
+  });
+}
+
+function flashHabitSaveFeedback() {
+  if (!els.habitForm) return;
+  clearTimeout(habitSaveFlashTimer);
+  els.habitForm.classList.remove('modal-card--saved');
+  void els.habitForm.offsetWidth;
+  els.habitForm.classList.add('modal-card--saved');
+  habitSaveFlashTimer = window.setTimeout(() => {
+    els.habitForm.classList.remove('modal-card--saved');
+  }, 650);
 }
 
 function upsertHabit({ id, name, pointsPerTap }) {
   const cleanName = String(name || '').trim();
   if (!cleanName) return null;
 
+  const existing = id ? getHabit(id) : null;
   const habit = normalizeHabit({
-    id: id || uid(),
+    id: existing?.id || id || uid(),
     name: cleanName,
     pointsPerTap: Number(pointsPerTap) === 2 ? 2 : 1,
-    createdAt: new Date().toISOString(),
+    createdAt: existing?.createdAt || new Date().toISOString(),
+    archived: existing?.archived || false,
   });
 
   ensureUniqueHabitInState(habit);
   return habit;
 }
 
-function openSlotDialog(slotId) {
+function renderSlotDialog(slotId) {
   const week = currentWeek();
   const slot = getSlot(week, slotId);
   if (!slot) return;
@@ -542,9 +778,15 @@ function openSlotDialog(slotId) {
   els.slotId.value = slotId;
   const habit = getHabit(slot.habitId);
   els.slotDialogTitle.textContent = habit ? 'Swap or edit this habit' : 'Choose a habit';
-  els.slotDialogMeta.textContent = habit
-    ? `${habit.name} • ${habit.pointsPerTap} point${habit.pointsPerTap > 1 ? 's' : ''} per tap`
-    : 'This box is empty right now.';
+  if (els.slotManage) {
+    els.slotManage.hidden = state.habits.length === 0;
+    els.slotManage.className = habitManageMode ? 'primary' : '';
+    els.slotManage.textContent = habitManageMode ? 'Done editing habits' : 'Edit habits';
+  }
+  if (els.slotDelete) {
+    els.slotDelete.hidden = false;
+    els.slotDelete.textContent = 'Delete row';
+  }
 
   els.slotOptions.innerHTML = '';
 
@@ -565,14 +807,28 @@ function openSlotDialog(slotId) {
     editBtn.textContent = 'Edit current habit';
     editBtn.addEventListener('click', () => {
       closeSlotDialog();
-      openHabitDialog(habit);
+      openHabitDialog(habit, slotId, habitManageMode);
     });
     els.slotOptions.appendChild(editBtn);
+  }
 
+  if (state.habits.length > 0) {
+    const manageBtn = document.createElement('button');
+    manageBtn.type = 'button';
+    manageBtn.className = habitManageMode ? 'primary' : '';
+    manageBtn.textContent = habitManageMode ? 'Done editing habits' : 'Edit habits';
+    manageBtn.addEventListener('click', () => {
+      habitManageMode = !habitManageMode;
+      renderSlotDialog(slotId);
+    });
+    els.slotOptions.appendChild(manageBtn);
+  }
+
+  if (habit) {
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
     clearBtn.className = 'danger';
-    clearBtn.textContent = 'Clear this box';
+    clearBtn.textContent = 'Clear this habit';
     clearBtn.addEventListener('click', () => {
       clearSlot(slotId);
       closeSlotDialog();
@@ -582,7 +838,7 @@ function openSlotDialog(slotId) {
 
   const listTitle = document.createElement('div');
   listTitle.className = 'slot-list-title';
-  listTitle.textContent = state.habits.length ? 'Saved habits' : 'No saved habits yet';
+  listTitle.textContent = state.habits.length ? 'Saved Habits' : 'No Saved Habits Yet';
   els.slotOptions.appendChild(listTitle);
 
   if (state.habits.length === 0) {
@@ -594,24 +850,71 @@ function openSlotDialog(slotId) {
     state.habits
       .filter((item) => !item.archived)
       .forEach((savedHabit) => {
+        const row = document.createElement('div');
+        row.className = `saved-habit-row ${savedHabit.id === slot.habitId ? 'saved-habit-row--selected' : ''}`;
+
         const habitBtn = document.createElement('button');
         habitBtn.type = 'button';
         habitBtn.className = `saved-habit ${savedHabit.id === slot.habitId ? 'saved-habit--selected' : ''}`;
-        habitBtn.innerHTML = `<span>${savedHabit.name}</span><small>${savedHabit.pointsPerTap} point${savedHabit.pointsPerTap > 1 ? 's' : ''} per tap</small>`;
+        habitBtn.setAttribute('aria-label', `${savedHabit.name}, ${savedHabit.pointsPerTap} point${savedHabit.pointsPerTap > 1 ? 's' : ''} per tap`);
+        const habitName = document.createElement('span');
+        habitName.className = 'saved-habit__name';
+        habitName.textContent = savedHabit.name;
+        const habitHeart = document.createElement('span');
+        habitHeart.className = 'saved-habit__heart';
+        habitHeart.appendChild(heartElement(savedHabit.pointsPerTap === 2 ? 2 : 1));
+        habitBtn.append(habitName, habitHeart);
         habitBtn.addEventListener('click', () => {
+          if (habitManageMode) {
+            closeSlotDialog();
+            openHabitDialog(savedHabit, slotId, habitManageMode);
+            return;
+          }
           assignHabitToSlot(slotId, savedHabit.id);
           closeSlotDialog();
         });
-        els.slotOptions.appendChild(habitBtn);
+        row.appendChild(habitBtn);
+
+        if (habitManageMode) {
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'saved-habit-delete';
+          deleteBtn.title = `Delete ${savedHabit.name}`;
+          deleteBtn.setAttribute('aria-label', `Delete ${savedHabit.name}`);
+          deleteBtn.textContent = '';
+          deleteBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const deleted = confirmDeleteHabit(savedHabit.id);
+            if (deleted && els.slotDialog.open && activeSlotId) {
+              renderSlotDialog(activeSlotId);
+            }
+          });
+          row.appendChild(deleteBtn);
+        }
+
+        els.slotOptions.appendChild(row);
       });
   }
+}
 
+function openSlotDialog(slotId) {
+  renderSlotDialog(slotId);
   els.slotDialog.showModal();
 }
 
 function closeSlotDialog() {
   if (els.slotDialog.open) els.slotDialog.close();
   activeSlotId = null;
+  habitManageMode = false;
+}
+
+function confirmDeleteHabit(habitId) {
+  const habit = getHabit(habitId);
+  if (!habit) return false;
+  const ok = window.confirm(`Do you want to delete this habit? This will remove “${habit.name}” from every week.`);
+  if (!ok) return false;
+  deleteHabit(habitId);
+  return true;
 }
 
 function exportBackup() {
@@ -636,6 +939,8 @@ async function importBackup(file) {
   const next = {
     version: 2,
     currentWeekStart: parsed.currentWeekStart || mondayKey(new Date()),
+    activeScreen: parsed.activeScreen || 'habits',
+    selectedMonthKey: parsed.selectedMonthKey || monthKey(new Date()),
     habits: Array.isArray(parsed.habits) ? parsed.habits.map(normalizeHabit) : [],
     weeks: Object.fromEntries(
       Object.entries(parsed.weeks || {}).map(([key, week]) => [key, normalizeWeek(week)])
@@ -652,8 +957,14 @@ els.mission.addEventListener('input', () => {
   saveState();
 });
 
+els.missionSave.addEventListener('click', saveMission);
+
 els.habitForm.addEventListener('submit', (event) => {
   event.preventDefault();
+  document.activeElement?.blur?.();
+  const isNewHabit = !editingHabitId;
+  const returnSlotId = habitDialogReturnSlotId;
+  const returnManageMode = habitDialogReturnManageMode;
   const habit = upsertHabit({
     id: els.habitId.value || editingHabitId,
     name: els.habitName.value,
@@ -662,18 +973,95 @@ els.habitForm.addEventListener('submit', (event) => {
 
   if (habit && pendingSlotId) {
     assignHabitToSlot(pendingSlotId, habit.id);
+    pendingSlotId = null;
   }
 
-  pendingSlotId = null;
-  closeHabitDialog();
+  if (!habit) return;
+
+  if (isNewHabit) {
+    closeHabitDialog();
+    return;
+  }
+
+  if (returnSlotId) {
+    els.habitDialog.close();
+    editingHabitId = null;
+    habitDialogReturnSlotId = null;
+    habitDialogReturnManageMode = false;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: habitDialogScrollY, left: 0, behavior: 'auto' });
+      habitManageMode = returnManageMode;
+      openSlotDialog(returnSlotId);
+    });
+    return;
+  }
+
+  render();
+  flashHabitSaveFeedback();
+
+  setTimeout(() => {
+    try {
+      els.habitName.focus({ preventScroll: true });
+    } catch {
+      els.habitName.focus();
+    }
+  }, 20);
+});
+
+els.habitPoints.addEventListener('change', () => {
+  renderHeartPreview(els.habitPointsPreview, els.habitPoints.value);
+  els.habitPoints.blur();
 });
 
 els.habitDelete.addEventListener('click', () => {
   const habitId = els.habitId.value || editingHabitId;
   if (!habitId) return;
-  deleteHabit(habitId);
+  const deleted = confirmDeleteHabit(habitId);
+  if (!deleted) return;
   pendingSlotId = null;
   closeHabitDialog();
+});
+
+if (els.slotManage) {
+  els.slotManage.addEventListener('click', () => {
+    habitManageMode = !habitManageMode;
+    if (activeSlotId) renderSlotDialog(activeSlotId);
+  });
+}
+
+els.slotDelete.addEventListener('click', () => {
+  if (!activeSlotId) return;
+  const ok = window.confirm('Delete this row? This will remove the row from the week.');
+  if (!ok) return;
+  removeSlot(activeSlotId);
+  closeSlotDialog();
+});
+
+
+document.querySelectorAll('[data-action]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.action;
+    if (action === 'prev-week') moveWeek(-1);
+    if (action === 'next-week') moveWeek(1);
+    if (action === 'prev-month') moveMonth(-1);
+    if (action === 'next-month') moveMonth(1);
+    if (action === 'today') jumpToToday();
+    if (action === 'add-habit') addNewSlotAndPick(currentWeek());
+    if (action === 'copy-previous-week' || action === 'copy-previous-inline') copyPreviousWeek();
+    if (action === 'clear-week') clearCurrentWeek();
+    if (action === 'close-habit') closeHabitDialog();
+    if (action === 'close-slot') closeSlotDialog();
+  });
+});
+
+Array.from(document.querySelectorAll('[data-screen]')).forEach((button) => {
+  button.addEventListener('click', () => setActiveScreen(button.dataset.screen));
+});
+
+els.monthOverview.addEventListener('click', (event) => {
+  const card = event.target.closest('[data-action="jump-week"]');
+  if (!card) return;
+  jumpToWeek(card.dataset.week);
 });
 
 els.exportBackup.addEventListener('click', exportBackup);
@@ -687,22 +1075,9 @@ els.importBackup.addEventListener('change', async () => {
   }
 });
 
-document.querySelectorAll('[data-action]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const action = button.dataset.action;
-    if (action === 'prev-week') moveWeek(-1);
-    if (action === 'next-week') moveWeek(1);
-    if (action === 'today') jumpToToday();
-    if (action === 'copy-previous') copyPreviousWeek();
-    if (action === 'backup') document.getElementById('backupDialog').showModal();
-    if (action === 'close-backup') document.getElementById('backupDialog').close();
-    if (action === 'close-habit') closeHabitDialog();
-    if (action === 'close-slot') closeSlotDialog();
-  });
-});
-
 els.slotDialog.addEventListener('close', () => {
   activeSlotId = null;
+  habitManageMode = false;
 });
 
 // Boot.
