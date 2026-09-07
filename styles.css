@@ -1214,6 +1214,50 @@ button:focus-visible {
   cursor: not-allowed;
 }
 
+.mission-card textarea {
+  min-height: 124px;
+  height: 124px;
+  line-height: 1.18;
+}
+
+.mission-actions {
+  margin-top: 8px;
+}
+
+.mission-actions .primary {
+  min-height: 40px;
+  padding: .45rem .8rem;
+  font-size: .9rem;
+}
+
+.saved-habit-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.saved-habit-actions {
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.saved-habit-move {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  font-size: .92rem;
+}
+
+.saved-habit-delete {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+}
+
+.saved-habit-delete::before {
+  width: 16px;
+  height: 16px;
+}
+
 .saved-habit-row--selected .saved-habit {
   border-color: rgba(114, 233, 255, 0.42);
   box-shadow: 0 0 0 1px rgba(114,233,255,0.14), 0 0 14px rgba(114,233,255,0.08);
