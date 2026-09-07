@@ -13,6 +13,7 @@ const DAYS = [
 const els = {
   weekTitle: document.getElementById('weekTitle'),
   weekCopyPrompt: document.getElementById('weekCopyPrompt'),
+  frameTop: document.querySelector('.frame-top'),
   trackerBoard: document.getElementById('trackerBoard'),
   weekHearts: document.getElementById('weekHearts'),
   weekSubtitle: document.getElementById('weekSubtitle'),
@@ -126,13 +127,16 @@ function renderWeekTitle(weekRange) {
   if (!weekRange.split) return weekRange.text;
 
   return `
-    <span class="week-title-grid">
-      <span class="week-title-month">${weekRange.startMonth}</span>
-      <span class="week-title-day">${weekRange.startDay}</span>
-      <span class="week-title-dash">-</span>
-      <span class="week-title-month week-title-month--second">${weekRange.endMonth}</span>
-      <span class="week-title-day">${weekRange.endDay}</span>
-      <span class="week-title-dash week-title-dash--spacer" aria-hidden="true"></span>
+    <span class="week-title-stack" aria-label="${weekRange.startMonth} ${weekRange.startDay} to ${weekRange.endMonth} ${weekRange.endDay}">
+      <span class="week-title-line">
+        <span class="week-title-month">${weekRange.startMonth}</span>
+        <span class="week-title-day">${weekRange.startDay}</span>
+        <span class="week-title-dash">-</span>
+      </span>
+      <span class="week-title-line week-title-line--end">
+        <span class="week-title-month week-title-month--second">${weekRange.endMonth}</span>
+        <span class="week-title-day">${weekRange.endDay}</span>
+      </span>
     </span>
   `;
 }
@@ -214,21 +218,6 @@ function monthWeekTotals() {
       points: weekTotals(week).points,
     };
   });
-}
-
-function renderWeekTitle(weekRange) {
-  if (!weekRange.split) return weekRange.text;
-
-  return `
-    <span class="week-title-grid">
-      <span class="week-title-month">${weekRange.startMonth}</span>
-      <span class="week-title-day">${weekRange.startDay}</span>
-      <span class="week-title-dash">-</span>
-      <span class="week-title-month week-title-month--second">${weekRange.endMonth}</span>
-      <span class="week-title-day">${weekRange.endDay}</span>
-      <span class="week-title-dash week-title-dash--spacer" aria-hidden="true"></span>
-    </span>
-  `;
 }
 
 function blankSlot() {
@@ -452,12 +441,18 @@ function renderHeartPreview(target, pointsPerTap) {
 }
 
 function makeCornerCell() {
-  const corner = document.createElement('div');
-  corner.className = 'board-corner';
+  const corner = document.createElement('button');
+  corner.type = 'button';
+  corner.className = 'board-corner board-corner--top';
+  corner.setAttribute('aria-label', "Reorder habits without changing this week's hearts");
   const eyebrow = document.createElement('span');
   eyebrow.className = 'board-eyebrow';
   eyebrow.textContent = 'HABITS';
-  corner.append(eyebrow);
+  const symbol = document.createElement('span');
+  symbol.className = 'board-corner__symbol';
+  symbol.textContent = '↕';
+  corner.append(eyebrow, symbol);
+  corner.addEventListener('click', openHabitReorderDialog);
   return corner;
 }
 
@@ -541,6 +536,7 @@ function render() {
   els.weekHearts.textContent = `${formatPoints(totals.points)} / ${maxHearts || 0}`;
   els.allTimeHearts.textContent = formatPoints(allTimePoints);
   els.weekCopyPrompt.hidden = weekHasContent;
+  els.frameTop?.classList.toggle('frame-top--compact', weekRange.split);
   els.mission.value = week.mission || '';
 
   els.monthTitle.textContent = formatMonthTitle(state.selectedMonthKey);
@@ -854,10 +850,10 @@ function renderSlotDialog(slotId) {
   listTitle.textContent = state.habits.length ? 'Saved Habits' : 'No Saved Habits Yet';
   els.slotOptions.appendChild(listTitle);
 
-  if (state.habits.length > 1 && habitManageMode) {
+  if (habitManageMode) {
     const hint = document.createElement('p');
     hint.className = 'slot-list-hint subtle';
-    hint.textContent = 'Use the arrows to reorder habits.';
+    hint.textContent = 'Tap a habit to edit its name or hearts value.';
     els.slotOptions.appendChild(hint);
   }
 
@@ -896,36 +892,6 @@ function renderSlotDialog(slotId) {
         row.appendChild(habitBtn);
 
         if (habitManageMode) {
-          const reorder = document.createElement('div');
-          reorder.className = 'saved-habit-actions';
-
-          const moveUpBtn = document.createElement('button');
-          moveUpBtn.type = 'button';
-          moveUpBtn.className = 'saved-habit-move';
-          moveUpBtn.title = `Move ${savedHabit.name} up`;
-          moveUpBtn.setAttribute('aria-label', `Move ${savedHabit.name} up`);
-          moveUpBtn.textContent = '↑';
-          moveUpBtn.disabled = state.habits.findIndex((item) => item.id === savedHabit.id) <= 0;
-          moveUpBtn.addEventListener('click', (event) => {
-            event.stopPropagation();
-            if (moveHabit(savedHabit.id, -1)) renderSlotDialog(slotId);
-          });
-
-          const moveDownBtn = document.createElement('button');
-          moveDownBtn.type = 'button';
-          moveDownBtn.className = 'saved-habit-move';
-          moveDownBtn.title = `Move ${savedHabit.name} down`;
-          moveDownBtn.setAttribute('aria-label', `Move ${savedHabit.name} down`);
-          moveDownBtn.textContent = '↓';
-          moveDownBtn.disabled = state.habits.findIndex((item) => item.id === savedHabit.id) >= state.habits.length - 1;
-          moveDownBtn.addEventListener('click', (event) => {
-            event.stopPropagation();
-            if (moveHabit(savedHabit.id, 1)) renderSlotDialog(slotId);
-          });
-
-          reorder.append(moveUpBtn, moveDownBtn);
-          row.appendChild(reorder);
-
           const deleteBtn = document.createElement('button');
           deleteBtn.type = 'button';
           deleteBtn.className = 'saved-habit-delete';
@@ -945,6 +911,89 @@ function renderSlotDialog(slotId) {
         els.slotOptions.appendChild(row);
       });
   }
+}
+
+function openHabitReorderDialog() {
+  renderHabitReorderDialog();
+  if (!els.slotDialog.open) els.slotDialog.showModal();
+}
+
+function renderHabitReorderDialog() {
+  activeSlotId = null;
+  habitManageMode = false;
+  habitDialogScrollY = window.scrollY;
+  els.slotId.value = '';
+  els.slotDialogTitle.textContent = 'Reorder habits';
+  if (els.slotManage) {
+    els.slotManage.hidden = true;
+  }
+  if (els.slotDelete) {
+    els.slotDelete.hidden = true;
+  }
+
+  els.slotOptions.innerHTML = '';
+
+  const hint = document.createElement('p');
+  hint.className = 'slot-list-hint subtle';
+  hint.textContent = 'Move habits up or down here. This only changes the grid order, not the hearts already recorded for this week.';
+  els.slotOptions.appendChild(hint);
+
+  const habits = state.habits.filter((item) => !item.archived);
+
+  if (habits.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'subtle';
+    empty.textContent = 'Create a habit first, then come back here to adjust the order.';
+    els.slotOptions.appendChild(empty);
+    return;
+  }
+
+  habits.forEach((savedHabit) => {
+    const row = document.createElement('div');
+    row.className = 'saved-habit-row';
+
+    const habitCard = document.createElement('button');
+    habitCard.type = 'button';
+    habitCard.className = 'saved-habit saved-habit--static';
+    habitCard.setAttribute('aria-hidden', 'true');
+    habitCard.tabIndex = -1;
+    const habitName = document.createElement('span');
+    habitName.className = 'saved-habit__name';
+    habitName.textContent = savedHabit.name;
+    const habitHeart = document.createElement('span');
+    habitHeart.className = 'saved-habit__heart';
+    habitHeart.appendChild(heartElement(savedHabit.pointsPerTap === 2 ? 2 : 1));
+    habitCard.append(habitName, habitHeart);
+
+    const reorder = document.createElement('div');
+    reorder.className = 'saved-habit-actions';
+
+    const moveUpBtn = document.createElement('button');
+    moveUpBtn.type = 'button';
+    moveUpBtn.className = 'saved-habit-move';
+    moveUpBtn.title = `Move ${savedHabit.name} up`;
+    moveUpBtn.setAttribute('aria-label', `Move ${savedHabit.name} up`);
+    moveUpBtn.textContent = '↑';
+    moveUpBtn.disabled = state.habits.findIndex((item) => item.id === savedHabit.id) <= 0;
+    moveUpBtn.addEventListener('click', () => {
+      if (moveHabit(savedHabit.id, -1)) renderHabitReorderDialog();
+    });
+
+    const moveDownBtn = document.createElement('button');
+    moveDownBtn.type = 'button';
+    moveDownBtn.className = 'saved-habit-move';
+    moveDownBtn.title = `Move ${savedHabit.name} down`;
+    moveDownBtn.setAttribute('aria-label', `Move ${savedHabit.name} down`);
+    moveDownBtn.textContent = '↓';
+    moveDownBtn.disabled = state.habits.findIndex((item) => item.id === savedHabit.id) >= state.habits.length - 1;
+    moveDownBtn.addEventListener('click', () => {
+      if (moveHabit(savedHabit.id, 1)) renderHabitReorderDialog();
+    });
+
+    reorder.append(moveUpBtn, moveDownBtn);
+    row.append(habitCard, reorder);
+    els.slotOptions.appendChild(row);
+  });
 }
 
 function openSlotDialog(slotId) {

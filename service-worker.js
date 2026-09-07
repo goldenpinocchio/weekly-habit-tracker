@@ -1,4 +1,4 @@
-const CACHE_NAME = 'habit-planner-cache-v50';
+const CACHE_NAME = 'habit-planner-cache-v19';
 const ASSETS = ['index.html', 'styles.css', 'app.js', 'manifest.json', 'icons/icon-32.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {

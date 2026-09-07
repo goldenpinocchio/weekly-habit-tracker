@@ -156,6 +156,27 @@ button.danger {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
 }
 
+.frame-top--compact {
+  gap: 6px;
+  padding: 6px 8px 5px;
+  align-items: center;
+}
+
+.frame-top--compact .week-nav {
+  width: 44px;
+  height: 44px;
+  font-size: 1.55rem;
+  box-shadow: 0 3px 0 rgba(120, 32, 79, 0.3);
+}
+
+.frame-top--compact .week-heading {
+  gap: 2px;
+}
+
+.frame-top--compact .week-top-actions {
+  align-self: center;
+}
+
 .week-nav {
   width: 50px;
   height: 50px;
@@ -179,6 +200,10 @@ button.danger {
   justify-items: center;
 }
 
+.frame-top--compact .week-heading {
+  gap: 0;
+}
+
 .eyebrow {
   display: none;
 }
@@ -196,9 +221,9 @@ button.danger {
 }
 
 .week-heading h1.week-title--split {
-  font-size: clamp(1.08rem, 4.8vw, 1.95rem);
-  line-height: .84;
-  letter-spacing: -0.06em;
+  font-size: clamp(1.12rem, 4.95vw, 1.82rem);
+  line-height: .76;
+  letter-spacing: -0.055em;
 }
 
 .week-top-actions {
@@ -220,13 +245,30 @@ button.danger {
   box-shadow: 0 3px 0 rgba(120, 32, 79, 0.16);
 }
 
-.week-title-grid {
+.frame-top--compact .week-inline-action {
+  margin-top: -4px;
+  padding: .18rem .56rem;
+  font-size: .75rem;
+  box-shadow: 0 2px 0 rgba(120, 32, 79, 0.14);
+}
+
+.week-title-stack {
   display: grid;
-  grid-template-columns: 3.2ch minmax(2.2ch, auto) 1.2ch;
-  justify-content: center;
+  justify-items: center;
+  gap: 0;
+  line-height: .8;
+}
+
+.week-title-line {
+  display: flex;
   align-items: baseline;
-  column-gap: .45em;
-  row-gap: .08em;
+  justify-content: center;
+  gap: .18em;
+  white-space: nowrap;
+}
+
+.week-title-line--end {
+  margin-top: 0;
 }
 
 .week-title-month,
@@ -244,14 +286,13 @@ button.danger {
   min-width: 2.6ch;
 }
 
+.week-title--split .week-title-day {
+  min-width: 0;
+}
+
 .week-title-dash {
   text-align: center;
   justify-self: center;
-}
-
-.week-title-month--second,
-.week-title-dash--spacer {
-  margin-top: -.02em;
 }
 
 .board-wrap { overflow: hidden; }
@@ -289,11 +330,26 @@ button.danger {
 .board-corner {
   background: linear-gradient(180deg, #39106a 0%, #1d327c 100%);
   color: #ff9ec9;
-  padding: 10px 12px;
+  padding: 10px 12px 10px 13px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.board-corner:hover,
+.board-corner:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 0 1px rgba(114, 233, 255, 0.26),
+    0 0 16px rgba(114, 233, 255, 0.12);
 }
 
 .board-corner--top {
@@ -302,8 +358,26 @@ button.danger {
 
 .board-eyebrow {
   color: #ff9ec9;
-  font-size: .8rem;
-  letter-spacing: .08em;
+  font-size: .82rem;
+  font-weight: 900;
+  letter-spacing: .16em;
+  line-height: 1;
+}
+
+.board-corner__symbol {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  margin-top: 0;
+  align-self: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  font-size: 1.08rem;
+  line-height: 1;
+  color: #d9fbff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
 }
 
 .board-corner strong {
@@ -583,17 +657,17 @@ button.danger {
 }
 
 .mission-card {
-  padding: 12px 14px 14px;
-  border-radius: 24px;
+  padding: 8px 12px 10px;
+  border-radius: 20px;
   border: 2px solid rgba(117, 164, 145, 0.42);
   background: linear-gradient(180deg, rgba(255,255,255,0.38), rgba(255,255,255,0.18));
 }
 
 .mission-card textarea {
-  height: 5.2rem;
-  min-height: 5.2rem;
-  padding-top: .7rem;
-  padding-bottom: .7rem;
+  height: 3.2rem;
+  min-height: 3.2rem;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
   overflow-y: auto;
   resize: none;
 }
@@ -601,14 +675,23 @@ button.danger {
 .mission-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 10px;
+  margin-top: 6px;
+}
+
+.mission-card .primary,
+.mission-card .mission-actions button {
+  padding: .48rem .82rem;
+  min-height: 0;
+  border-radius: 999px;
+  font-size: .9rem;
 }
 
 .mission-card label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #1a2946;
   font-weight: 700;
+  font-size: .92rem;
 }
 
 .screen-panel {
@@ -843,6 +926,11 @@ button.danger {
   margin-top: -2px;
 }
 
+.frame-top--compact + .week-copy-prompt,
+.frame-top--compact .week-copy-prompt {
+  margin-top: -6px;
+}
+
 textarea,
 input,
 select {
@@ -1060,6 +1148,10 @@ button:focus-visible {
   gap: 10px;
   text-align: left;
   border-radius: 18px;
+}
+
+.saved-habit--static {
+  pointer-events: none;
 }
 
 .saved-habit__name {
