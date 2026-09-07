@@ -398,6 +398,19 @@ function getHabit(habitId) {
   return state.habits.find((habit) => habit.id === habitId) || null;
 }
 
+function moveHabit(habitId, direction) {
+  const index = state.habits.findIndex((habit) => habit.id === habitId);
+  if (index < 0) return false;
+
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= state.habits.length) return false;
+
+  const [habit] = state.habits.splice(index, 1);
+  state.habits.splice(targetIndex, 0, habit);
+  saveState();
+  return true;
+}
+
 function getSlot(week, slotId) {
   return week.slots.find((slot) => slot.id === slotId) || null;
 }
@@ -841,6 +854,13 @@ function renderSlotDialog(slotId) {
   listTitle.textContent = state.habits.length ? 'Saved Habits' : 'No Saved Habits Yet';
   els.slotOptions.appendChild(listTitle);
 
+  if (state.habits.length > 1 && habitManageMode) {
+    const hint = document.createElement('p');
+    hint.className = 'slot-list-hint subtle';
+    hint.textContent = 'Use the arrows to reorder habits.';
+    els.slotOptions.appendChild(hint);
+  }
+
   if (state.habits.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'subtle';
@@ -876,6 +896,36 @@ function renderSlotDialog(slotId) {
         row.appendChild(habitBtn);
 
         if (habitManageMode) {
+          const reorder = document.createElement('div');
+          reorder.className = 'saved-habit-actions';
+
+          const moveUpBtn = document.createElement('button');
+          moveUpBtn.type = 'button';
+          moveUpBtn.className = 'saved-habit-move';
+          moveUpBtn.title = `Move ${savedHabit.name} up`;
+          moveUpBtn.setAttribute('aria-label', `Move ${savedHabit.name} up`);
+          moveUpBtn.textContent = '↑';
+          moveUpBtn.disabled = state.habits.findIndex((item) => item.id === savedHabit.id) <= 0;
+          moveUpBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (moveHabit(savedHabit.id, -1)) renderSlotDialog(slotId);
+          });
+
+          const moveDownBtn = document.createElement('button');
+          moveDownBtn.type = 'button';
+          moveDownBtn.className = 'saved-habit-move';
+          moveDownBtn.title = `Move ${savedHabit.name} down`;
+          moveDownBtn.setAttribute('aria-label', `Move ${savedHabit.name} down`);
+          moveDownBtn.textContent = '↓';
+          moveDownBtn.disabled = state.habits.findIndex((item) => item.id === savedHabit.id) >= state.habits.length - 1;
+          moveDownBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (moveHabit(savedHabit.id, 1)) renderSlotDialog(slotId);
+          });
+
+          reorder.append(moveUpBtn, moveDownBtn);
+          row.appendChild(reorder);
+
           const deleteBtn = document.createElement('button');
           deleteBtn.type = 'button';
           deleteBtn.className = 'saved-habit-delete';
